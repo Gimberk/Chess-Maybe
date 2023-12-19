@@ -1,9 +1,8 @@
-public class Chess {
-    public static void main(String[] args) {
-        System.out.println("Hello and welcome!");
+import board.Board;
 
-        for (int i = 1; i <= 5; i++) {
-            System.out.println("i = " + i);
-        }
+public class Chess {
+    public static void main(String[] args) throws Exception {
+        Board board = new Board();
+        board.loadFen(Board.baseFen);
     }
 }
