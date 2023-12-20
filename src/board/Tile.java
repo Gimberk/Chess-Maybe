@@ -13,4 +13,9 @@ public class Tile {
     public void Update(Piece piece){
         this.piece = piece; occupied = piece != null;
     }
+
+    @Override
+    public String toString(){
+        return occupied ? piece.toString() : "-";
+    }
 }

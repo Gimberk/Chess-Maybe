@@ -12,6 +12,12 @@ public class Pawn extends Piece {
     }
 
     @Override
+    public String toString(){
+        char repr = 'P';
+        return alliance == Alliance.WHITE ? String.valueOf(repr) : String.valueOf(Character.toLowerCase(repr));
+    }
+
+    @Override
     public List<Move> getLegalMoves(Board board) {
         return null;
     }

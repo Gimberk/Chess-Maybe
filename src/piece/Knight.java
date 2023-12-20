@@ -3,6 +3,7 @@ package piece;
 import board.Board;
 import board.Tile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Knight extends Piece {
@@ -12,7 +13,26 @@ public class Knight extends Piece {
     }
 
     @Override
-    public List<Move> getLegalMoves(Board board) {
-        return null;
+    public String toString(){
+        char repr = 'N';
+        return alliance == Alliance.WHITE ? String.valueOf(repr) : String.valueOf(Character.toLowerCase(repr));
+    }
+
+    @Override
+    public List<Move> getLegalMoves(Board board){
+        final int tIdx = tile.index;
+        final List<Move> moves = new ArrayList<>();
+        for (int direction : directions){
+            if (IsEdgeCase(tIdx, direction)) continue;
+            final int endIdx = tIdx + direction;
+            if (endIdx >= board.tiles.size() || endIdx < 0) continue;
+
+            final Tile tile = board.tiles.get(endIdx);
+            if (!ValidateTile(tile)) continue;
+            final Move newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece) :
+                    new MinorMove(tIdx, endIdx, this);
+            moves.add(newMove);
+        }
+        return moves;
     }
 }
