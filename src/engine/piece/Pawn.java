@@ -25,19 +25,54 @@ public class Pawn extends Piece {
         final int tIdx = tile.index;
         final List<Move> moves = new ArrayList<>();
         for (int direction : directions){
+            if (alliance == Alliance.WHITE){
+                if (direction > 0) continue;
+            }
+            else{
+                if (direction < 0) continue;
+            }
             if (IsEdgeCase(tIdx, direction)) continue;
             if (abs(direction) == 16){
                 if (moved) continue;
+                if (alliance == Alliance.WHITE){
+                    if (board.tiles.get(tIdx-8).occupied) continue;
+                }
+                else{
+                    if (board.tiles.get(tIdx+8).occupied) continue;
+                }
             }
+
             final int endIdx = tIdx + direction;
             if (endIdx >= board.tiles.size() || endIdx < 0) continue;
-
             final Tile tile = board.tiles.get(endIdx);
-            if (!ValidateTile(tile)) continue;
-            if (abs(direction) == 7 || abs(direction) == 9){
-                if (!tile.occupied) continue;
+
+            if (abs(direction) == 16 || abs(direction) == 8){
+                if (tile.occupied) continue;
             }
-            final Move newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece) :
+
+            if (!ValidateTile(tile)) continue;
+            boolean enPassantMove = false;
+            if (abs(direction) == 7 || abs(direction) == 9){
+                if (alliance == Alliance.WHITE){
+                    Tile enPassantTile = board.tiles.get(endIdx+8);
+                    if (!enPassantTile.occupied){
+                        if (!tile.occupied) continue;
+                    }
+                    else if (!tile.occupied) enPassantMove = true;
+                    if (enPassantTile.piece.alliance == alliance || !enPassantTile.piece.justMoved) continue;
+                }
+                else{
+                    Tile enPassantTile = board.tiles.get(endIdx-8);
+                    if (!enPassantTile.occupied){
+                        if (!tile.occupied) continue;
+                    }
+                    else if (!tile.occupied) enPassantMove = true;
+                    if (enPassantTile.piece.alliance == alliance || !enPassantTile.piece.justMoved) continue;
+                }
+            }
+            final Move newMove;
+            if (enPassantMove) newMove = new AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove);
+            else newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove) :
                     new MinorMove(tIdx, endIdx, this);
             moves.add(newMove);
         }

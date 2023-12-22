@@ -29,7 +29,7 @@ public class Knight extends Piece {
 
             final Tile tile = board.tiles.get(endIdx);
             if (!ValidateTile(tile)) continue;
-            final Move newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece) :
+            final Move newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece, false) :
                     new MinorMove(tIdx, endIdx, this);
             moves.add(newMove);
         }

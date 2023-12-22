@@ -6,8 +6,11 @@ public abstract class Move {
     public int start, end;
     public Piece piece, takenPiece;
 
-    public Move(int start, int end, Piece piece, Piece takenPiece){
+    public boolean enPassant;
+
+    public Move(int start, int end, Piece piece, Piece takenPiece, boolean enPassant){
         this.start = start; this.end = end; this.piece = piece; this.takenPiece = takenPiece;
+        this.enPassant = enPassant;
     }
 
     public boolean equals(Move other){

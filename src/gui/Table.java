@@ -23,6 +23,11 @@ import static javax.swing.SwingUtilities.isLeftMouseButton;
 import static javax.swing.SwingUtilities.isRightMouseButton;
 
 public class Table {
+    // FLip board
+    // Load PGN
+    // Flip Board
+    // Load FEN
+
     private final JFrame frame;
 
     private final String pieceIconPath;
@@ -47,6 +52,8 @@ public class Table {
     private final static Dimension boardPanelDimensions = new Dimension(400, 350);
     private final static Dimension tilePanelDimensions = new Dimension(10, 10);
 
+    public boolean showTileIndices = false;
+
     public Table(String pieceSet) throws Exception {
         pieceIconPath = "assets/" + pieceSet + "/";
         chessBoard = new Board();
@@ -57,7 +64,7 @@ public class Table {
         frame.setLayout(new BorderLayout());
         frame.setSize(outerFrameDimensions);
 
-        final JMenuBar menuBar = populateMenuBar();
+        final JMenuBar menuBar = createMenuBar();
         frame.setJMenuBar(menuBar);
 
         takenPanel = new TakenPanel();
@@ -69,10 +76,28 @@ public class Table {
         frame.setVisible(true);
     }
 
-    private JMenuBar populateMenuBar() {
+    private JMenuBar createMenuBar() {
         final JMenuBar menuBar = new JMenuBar();
+
         menuBar.add(createFileMenu());
+        menuBar.add(createDebugMenu());
+
         return menuBar;
+    }
+
+    private JMenu createDebugMenu() {
+        final JMenu debugMenu = new JMenu("Debug");
+
+        final JCheckBoxMenuItem tileIndices = new JCheckBoxMenuItem("Show Tile Indices");
+        tileIndices.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                
+            }
+        });
+
+        debugMenu.add(tileIndices);
+        return debugMenu;
     }
 
     private JMenu createFileMenu() {
@@ -121,7 +146,7 @@ public class Table {
             boolean color = true;
             int counter = 0;
             for (int i = 0; i < Board.numTiles; i++){
-                final TilePanel tile = new TilePanel(this, i, color);
+                final TilePanel tile = new TilePanel(i, color);
                 boardTiles.add(tile);
                 add(tile);
                 color = !color;
@@ -161,7 +186,7 @@ public class Table {
             return this;
         }
 
-        TilePanel(final BoardPanel panel, final int index, final boolean color){
+        TilePanel(final int index, final boolean color){
             super(new GridLayout());
             this.index = index;
             setPreferredSize(tilePanelDimensions);
@@ -193,9 +218,19 @@ public class Table {
                         else{
                             Tile source = selectedPiece.tile;
                             Move move = source.occupied ?  new
-                                    AttackMove(source.index, tile.index, selectedPiece, tile.piece) :
+                                    AttackMove(source.index, tile.index, selectedPiece, tile.piece, false) :
                                     new MinorMove(source.index, tile.index, selectedPiece);
+
                             if (move.start == move.end) return;
+
+                            if (!Move.contains(move.end, move.piece.getLegalMoves(chessBoard))) return;
+                            for (Move legal : move.piece.getLegalMoves(chessBoard)){
+                                if (legal.equals(move)){
+                                    move = legal;
+                                    break;
+                                }
+                            }
+
                             boolean moveSuccess = chessBoard.MakeMove(move);
                             if (moveSuccess){
                                 selectedPiece = null;
@@ -243,8 +278,8 @@ public class Table {
                     ImageIO.read(new File(pieceIconPath +
                         chessBoard.tiles.get(index).piece.alliance.toString().charAt(0) +
                         chessBoard.tiles.get(index).piece.toString() + ".gif"));
-                add(new JLabel(new ImageIcon(img)));
-        }
+                add(new JLabel(String.valueOf(index)));
+            }
             catch (IOException e){
                 e.printStackTrace();
             }

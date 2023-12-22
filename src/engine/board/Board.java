@@ -13,6 +13,8 @@ public class Board {
     public static final int numTiles = 64;
     public static final String baseFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
+    public boolean whiteOnBottom = true;
+
     public Board() {
         generateTiles();
     }
@@ -31,7 +33,7 @@ public class Board {
                 board.append(index).append(' ');
                 index--;
             }
-            board.append(tile.toString());
+            board.append(tile.toString());;
             board.append(' ');
             file++;
         }
@@ -74,6 +76,8 @@ public class Board {
                 'n', Type.KNIGHT,
                 'p', Type.PAWN,
                 'b', Type.BISHOP);
+
+        this.whiteOnBottom = whiteOnBottom;
 
         int file = 0, rank = whiteOnBottom ? 0 : 7;
         for (char symbol : fen.toCharArray())
@@ -143,13 +147,7 @@ public class Board {
         }
     }
 
-    public boolean MakeMove(Move move){
-        final List<Move> legals = move.piece.getLegalMoves(this);
-        if (!Move.contains(move.end, legals)){
-            System.out.println("Illegal Move!");
-            return false;
-        }
-
+    public boolean MakeMove(final Move move) {
         final Tile start = tiles.get(move.start), end = tiles.get(move.end);
         final boolean attack = move.takenPiece != null;
 
@@ -158,6 +156,24 @@ public class Board {
 
         move.piece.tile = end;
         if (attack) move.takenPiece.alive = false;
+
+        if (move.enPassant){
+            Tile enPassant;
+            if (move.piece.alliance == Alliance.WHITE){
+                enPassant = tiles.get(move.piece.tile.index + 8);
+            }
+            else{
+                enPassant = tiles.get(move.piece.tile.index - 8);
+
+            }
+            enPassant.piece.alive = false;
+            enPassant.Update(null);
+        }
+
+        for (Piece piece : pieces) piece.justMoved = false;
+
+        move.piece.moved = true;
+        move.piece.justMoved = true;
 
         displayBoard();
         return true;
