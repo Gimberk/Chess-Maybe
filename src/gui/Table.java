@@ -1,10 +1,7 @@
 package gui;
 
 import engine.board.*;
-import engine.piece.AttackMove;
-import engine.piece.MinorMove;
-import engine.piece.Move;
-import engine.piece.Piece;
+import engine.piece.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -23,22 +20,28 @@ import static javax.swing.SwingUtilities.isLeftMouseButton;
 import static javax.swing.SwingUtilities.isRightMouseButton;
 
 public class Table {
+    // Planned GUI features:
     // FLip board
     // Load PGN
-    // Flip Board
     // Load FEN
+    // Log Moves
+    // Show/Hide Debug Panel
+    // Implement Debug Panel
+    // Show/Hide Legal Moves
+    // Start Btn
+
 
     private final JFrame frame;
 
     private final String pieceIconPath;
 
-    private final BoardPanel boardPanel;
-    private final TakenPanel takenPanel;
+    private BoardPanel boardPanel;
+    private TakenPanel takenPanel;
 
     private Piece selectedPiece;
     private TilePanel selectedPanel;
 
-    private final Board chessBoard;
+    private Board chessBoard;
 
     private final Color lightTileColor = new Color(235, 212, 145);
     private final Color darkTileColor = new Color(125, 70, 22);
@@ -46,43 +49,74 @@ public class Table {
     private final Color highlightedDarkTileColor = new Color(79, 42, 10);
     private final Color selectedTileColor = new Color(168, 29, 22);
     private final Color takenPanelColor = new Color(189, 154, 102);
+    private final Color hoverLightTileColor = new Color(189, 168, 111);
+    private final Color hoverDarkTileColor = new Color(107, 60, 18);
 
     private final static Dimension outerFrameDimensions = new Dimension(600, 600);
     private final static Dimension takenPanelDimensions = new Dimension(40, 600);
     private final static Dimension boardPanelDimensions = new Dimension(400, 350);
     private final static Dimension tilePanelDimensions = new Dimension(10, 10);
 
-    public boolean showTileIndices = false;
+    private boolean showTileIndices = false;
+    private boolean gameStarted = false;
 
     public Table(String pieceSet) throws Exception {
         pieceIconPath = "assets/" + pieceSet + "/";
-        chessBoard = new Board();
-        chessBoard.loadFen(Board.baseFen, true);
-        chessBoard.displayBoard();
+        chessBoard = Board.createStandardBoard();
 
-        frame = new JFrame("A chess game in Java that samuek will lose");
+        frame = createGameFrame();
+    }
+
+    private JFrame createGameFrame(){
+        final JFrame frame = new JFrame("A chess game in Java that samuek will lose");
         frame.setLayout(new BorderLayout());
         frame.setSize(outerFrameDimensions);
 
         final JMenuBar menuBar = createMenuBar();
         frame.setJMenuBar(menuBar);
 
+        frame.setVisible(true);
+        return frame;
+    }
+
+    private void startGame(){
+        if (gameStarted){
+            System.out.println("Game Already Started!");
+            return;
+        }
+        gameStarted = true;
         takenPanel = new TakenPanel();
         frame.add(takenPanel, BorderLayout.WEST);
 
         boardPanel = new BoardPanel();
         frame.add(boardPanel, BorderLayout.CENTER);
-
-        frame.setVisible(true);
+        frame.repaint();
+        frame.validate();
     }
 
     private JMenuBar createMenuBar() {
         final JMenuBar menuBar = new JMenuBar();
 
         menuBar.add(createFileMenu());
+        menuBar.add(createGameMenu());
         menuBar.add(createDebugMenu());
 
         return menuBar;
+    }
+
+    private JMenu createGameMenu() {
+        final JMenu gameMenu = new JMenu("Game");
+
+        final JMenuItem start = new JMenuItem("Start Game!");
+        start.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startGame();
+            }
+        });
+
+        gameMenu.add(start);
+        return gameMenu;
     }
 
     private JMenu createDebugMenu() {
@@ -92,7 +126,9 @@ public class Table {
         tileIndices.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+                showTileIndices = !showTileIndices;
+                if (!gameStarted) return;
+                boardPanel.redrawBoard(chessBoard);
             }
         });
 
@@ -110,8 +146,8 @@ public class Table {
                 System.out.println("Not implemented yet!");
             }
         });
-        fileMenu.add(openPGN);
 
+        fileMenu.add(openPGN);
         return fileMenu;
     }
 
@@ -167,7 +203,7 @@ public class Table {
             }
         }
 
-        public void drawBoard(final Board chessBoard) {
+        public void redrawBoard(final Board chessBoard) {
             removeAll();
             for (final TilePanel tile : boardTiles){
                 tile.redrawTile(chessBoard);
@@ -204,7 +240,7 @@ public class Table {
                         if (selectedPanel != null){
                             selectedPanel = null;
                         }
-                        boardPanel.drawBoard(chessBoard);
+                        boardPanel.redrawBoard(chessBoard);
                     }
                     else if (isLeftMouseButton(e)){
                         if (selectedPiece == null){
@@ -236,11 +272,20 @@ public class Table {
                                 selectedPiece = null;
                                 selectedPanel.assignTileColor(selectedPanel.color ? lightTileColor : darkTileColor);
                                 selectedPanel = null;
-                                if (move.takenPiece != null) takenPanel.addPiece(move.takenPiece);
+
+                                Tile enPassantTile = move.piece.alliance == Alliance.WHITE ?
+                                        chessBoard.tiles.get(move.end+8) : chessBoard.tiles.get(move.end-8);
+                                if (move.takenPiece != null || move.enPassant) {
+                                    // While the pawn class doesn't set taken piece to anything in an en passant move,
+                                    // i updated the make move function to set it because it was the simplest solution
+                                    // I could think of
+                                    assert move.takenPiece != null;
+                                    takenPanel.addPiece(move.takenPiece);
+                                }
                                 SwingUtilities.invokeLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        boardPanel.drawBoard(chessBoard);
+                                        boardPanel.redrawBoard(chessBoard);
                                     }
                                 });
                             }
@@ -260,25 +305,36 @@ public class Table {
 
                 @Override
                 public void mouseEntered(MouseEvent e) {
-
+                    if (getBackground() == highlightedLightTileColor || getBackground() == highlightedDarkTileColor)
+                        return;
+                    if (getBackground() != selectedTileColor)
+                        assignTileColor(color ? hoverLightTileColor : hoverDarkTileColor);
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-
+                    // Don't highlight this tile if it is a highlighted legal move
+                    if (getBackground() == highlightedLightTileColor || getBackground() == highlightedDarkTileColor)
+                        return;
+                    if (getBackground() != selectedTileColor)
+                        assignTileColor(color ? lightTileColor : darkTileColor);
                 }
             });
         }
 
         private void assignPieceIcon(){
             removeAll();
+            if (showTileIndices){
+                add(new JLabel(String.valueOf(index)));
+                return;
+            }
             if (!chessBoard.tiles.get(index).occupied) return;
             try{
                 final BufferedImage img =
                     ImageIO.read(new File(pieceIconPath +
                         chessBoard.tiles.get(index).piece.alliance.toString().charAt(0) +
                         chessBoard.tiles.get(index).piece.toString() + ".gif"));
-                add(new JLabel(String.valueOf(index)));
+                add(new JLabel(new ImageIcon(img)));
             }
             catch (IOException e){
                 e.printStackTrace();

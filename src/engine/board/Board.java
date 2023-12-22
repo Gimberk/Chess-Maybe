@@ -19,6 +19,13 @@ public class Board {
         generateTiles();
     }
 
+    public static Board createStandardBoard() throws Exception {
+        Board chessBoard = new Board();
+        chessBoard.loadFen(Board.baseFen, true);
+        chessBoard.displayBoard();
+        return chessBoard;
+    }
+
     public void displayBoard(){
         final StringBuilder board = new StringBuilder();
         int file = 0, index = 7;
@@ -68,6 +75,12 @@ public class Board {
         System.out.println(board);
     }
 
+    public void clearBoard(){
+        tiles.clear();
+        generateTiles();
+        pieces.clear();
+    }
+
     public void loadFen(final String fen, final boolean whiteOnBottom) throws Exception {
         Map<Character, Type> pieces = Map.of(
                 'k', Type.KING,
@@ -78,6 +91,7 @@ public class Board {
                 'b', Type.BISHOP);
 
         this.whiteOnBottom = whiteOnBottom;
+        clearBoard();
 
         int file = 0, rank = whiteOnBottom ? 0 : 7;
         for (char symbol : fen.toCharArray())
@@ -147,6 +161,7 @@ public class Board {
         }
     }
 
+    // Returns if the move was a success or not
     public boolean MakeMove(final Move move) {
         final Tile start = tiles.get(move.start), end = tiles.get(move.end);
         final boolean attack = move.takenPiece != null;
@@ -158,24 +173,21 @@ public class Board {
         if (attack) move.takenPiece.alive = false;
 
         if (move.enPassant){
-            Tile enPassant;
-            if (move.piece.alliance == Alliance.WHITE){
-                enPassant = tiles.get(move.piece.tile.index + 8);
-            }
-            else{
-                enPassant = tiles.get(move.piece.tile.index - 8);
-
-            }
+            Tile enPassant = move.piece.alliance == Alliance.WHITE ? tiles.get(move.piece.tile.index + 8) :
+                    tiles.get(move.piece.tile.index - 8);
             enPassant.piece.alive = false;
+            move.takenPiece = enPassant.piece;
             enPassant.Update(null);
         }
 
         for (Piece piece : pieces) piece.justMoved = false;
 
-        move.piece.moved = true;
-        move.piece.justMoved = true;
+        move.piece.moved = true; move.piece.justMoved = true;
 
         displayBoard();
         return true;
     }
+
+    public static boolean isFifthRank(final int index) { return index > 23 && index < 32; }
+    public static boolean isFourthRank(final int index) { return index > 31 && index < 40; }
 }

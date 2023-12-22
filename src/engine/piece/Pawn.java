@@ -53,21 +53,13 @@ public class Pawn extends Piece {
             if (!ValidateTile(tile)) continue;
             boolean enPassantMove = false;
             if (abs(direction) == 7 || abs(direction) == 9){
-                if (alliance == Alliance.WHITE){
-                    Tile enPassantTile = board.tiles.get(endIdx+8);
-                    if (!enPassantTile.occupied){
-                        if (!tile.occupied) continue;
-                    }
-                    else if (!tile.occupied) enPassantMove = true;
-                    if (enPassantTile.piece.alliance == alliance || !enPassantTile.piece.justMoved) continue;
-                }
-                else{
-                    Tile enPassantTile = board.tiles.get(endIdx-8);
-                    if (!enPassantTile.occupied){
-                        if (!tile.occupied) continue;
-                    }
-                    else if (!tile.occupied) enPassantMove = true;
-                    if (enPassantTile.piece.alliance == alliance || !enPassantTile.piece.justMoved) continue;
+                if (!tile.occupied){
+                    Tile enPassantTile;
+                    enPassantTile = alliance == Alliance.WHITE ? board.tiles.get(endIdx+8) : board.tiles.get(endIdx-8);
+                    if (alliance == Alliance.WHITE && !Board.isFifthRank(enPassantTile.index) ||
+                            (alliance == Alliance.BLACK && !Board.isFourthRank(enPassantTile.index))) continue;
+                    if ((enPassantTile.occupied && enPassantTile.piece.justMoved)) enPassantMove = true;
+                    else continue;
                 }
             }
             final Move newMove;
