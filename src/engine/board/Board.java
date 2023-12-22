@@ -162,7 +162,7 @@ public class Board {
     }
 
     // Returns if the move was a success or not
-    public boolean MakeMove(final Move move) {
+    public boolean makeMove(final Move move) {
         final Tile start = tiles.get(move.start), end = tiles.get(move.end);
         final boolean attack = move.takenPiece != null;
 
