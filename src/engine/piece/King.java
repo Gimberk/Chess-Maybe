@@ -29,8 +29,8 @@ public class King extends Piece {
 
             final Tile tile = board.tiles.get(endIdx);
             if (!ValidateTile(tile)) continue;
-            final Move newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece, false) :
-                    new MinorMove(tIdx, endIdx, this);
+            final Move newMove = tile.occupied ?  new Move.AttackMove(tIdx, endIdx, this, tile.piece, false) :
+                    new Move.MinorMove(tIdx, endIdx, this);
             moves.add(newMove);
         }
         return moves;

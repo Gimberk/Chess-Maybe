@@ -3,23 +3,12 @@ package gui;
 import engine.board.*;
 import engine.piece.*;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import static javax.swing.SwingUtilities.isLeftMouseButton;
-import static javax.swing.SwingUtilities.isRightMouseButton;
-
-public class Table {
+public class GameFrame {
     // Planned GUI features:
     // FLip board
     // Load PGN
@@ -37,6 +26,7 @@ public class Table {
 
     public BoardPanel boardPanel;
     public TakenPanel takenPanel;
+    public MovePanel moveLogPanel;
 
     public Piece selectedPiece;
     public TilePanel selectedPanel;
@@ -48,19 +38,22 @@ public class Table {
     public static final Color highlightedLightTileColor = new Color(153, 134, 83);
     public static final Color highlightedDarkTileColor = new Color(79, 42, 10);
     public static final Color selectedTileColor = new Color(168, 29, 22);
-    public static final Color takenPanelColor = new Color(189, 154, 102);
     public static final Color hoverLightTileColor = new Color(189, 168, 111);
     public static final Color hoverDarkTileColor = new Color(107, 60, 18);
 
-    public final static Dimension outerFrameDimensions = new Dimension(600, 600);
-    public final static Dimension takenPanelDimensions = new Dimension(40, 600);
+    public static final Color takenPanelColor = new Color(189, 154, 102);
+    public static final Color moveLogPanelColor = new Color(189, 154, 102);
+
+    public final static Dimension outerFrameDimensions = new Dimension(1920, 1080);
+    public final static Dimension takenPanelDimensions = new Dimension(150, 350);
+    public final static Dimension moveLogPanelDimensions = new Dimension(400, 350);
     public final static Dimension boardPanelDimensions = new Dimension(400, 350);
     public final static Dimension tilePanelDimensions = new Dimension(10, 10);
 
     public boolean showTileIndices = false;
     public boolean gameStarted = false;
 
-    public Table(String pieceSet) throws Exception {
+    public GameFrame(String pieceSet) throws Exception {
         pieceIconPath = "assets/" + pieceSet + "/";
         chessBoard = Board.createStandardBoard();
 
@@ -85,8 +78,12 @@ public class Table {
             return;
         }
         gameStarted = true;
+
         takenPanel = new TakenPanel(this);
         frame.add(takenPanel, BorderLayout.WEST);
+
+        moveLogPanel = new MovePanel(this);
+        frame.add(moveLogPanel, BorderLayout.EAST);
 
         boardPanel = new BoardPanel(this);
         frame.add(boardPanel, BorderLayout.CENTER);

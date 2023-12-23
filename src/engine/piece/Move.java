@@ -23,5 +23,18 @@ public abstract class Move {
         }
         return false;
     }
+
+    public static class MinorMove extends Move {
+
+        public MinorMove(int start, int end, Piece piece) {
+            super(start, end, piece, null, false);
+        }
+    }
+
+    public static class AttackMove extends Move {
+        public AttackMove(int start, int end, Piece piece, Piece takenPiece, boolean enPassant) {
+            super(start, end, piece, takenPiece, enPassant);
+        }
+    }
 }
 

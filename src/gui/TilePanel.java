@@ -3,11 +3,9 @@ package gui;
 import engine.board.Board;
 import engine.board.Tile;
 import engine.piece.Alliance;
-import engine.piece.AttackMove;
-import engine.piece.MinorMove;
 import engine.piece.Move;
-
-import gui.Table;
+import engine.piece.Move;
+import engine.piece.Type;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,7 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static gui.Table.*;
+import static gui.GameFrame.*;
 import static javax.swing.SwingUtilities.isLeftMouseButton;
 import static javax.swing.SwingUtilities.isRightMouseButton;
 
@@ -30,11 +28,11 @@ public class TilePanel extends JPanel {
         return this;
     }
 
-    private final Table table;
+    private final GameFrame gameFrame;
 
-    TilePanel(final int index, final boolean color, final Table table){
+    TilePanel(final int index, final boolean color, final GameFrame gameFrame){
         super(new GridLayout());
-        this.table = table;
+        this.gameFrame = gameFrame;
         this.index = index;
         setPreferredSize(tilePanelDimensions);
         this.color = color;
@@ -45,60 +43,53 @@ public class TilePanel extends JPanel {
         addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                final Tile tile = table.chessBoard.tiles.get(index);
+                final Tile tile = gameFrame.chessBoard.tiles.get(index);
                 if(isRightMouseButton(e)){
-                    table.selectedPiece = null;
-                    if (table.selectedPanel != null){
-                        table.selectedPanel = null;
+                    gameFrame.selectedPiece = null;
+                    if (gameFrame.selectedPanel != null){
+                        gameFrame.selectedPanel = null;
                     }
-                    table.boardPanel.redrawBoard(table.chessBoard);
+                    gameFrame.boardPanel.redrawBoard(gameFrame.chessBoard);
                 }
                 else if (isLeftMouseButton(e)){
-                    if (table.selectedPiece == null){
+                    if (gameFrame.selectedPiece == null){
                         if (tile.piece != null){
                             assignTileColor(color ? highlightedLightTileColor : highlightedDarkTileColor);
-                            table.boardPanel.highlightLegalMoves(tile.piece.getLegalMoves(table.chessBoard));
+                            gameFrame.boardPanel.highlightLegalMoves(tile.piece.getLegalMoves(gameFrame.chessBoard));
                         }
-                        table.selectedPiece = tile.piece;
-                        table.selectedPanel = get();
+                        gameFrame.selectedPiece = tile.piece;
+                        gameFrame.selectedPanel = get();
                     }
                     else{
-                        Tile source = table.selectedPiece.tile;
-                        Move move = source.occupied ?  new
-                                AttackMove(source.index, tile.index, table.selectedPiece, tile.piece, false) :
-                                new MinorMove(source.index, tile.index, table.selectedPiece);
+                        Tile source = gameFrame.selectedPiece.tile;
+                        Move move = source.occupied ?
+                                new Move.AttackMove(source.index, tile.index, gameFrame.selectedPiece, tile.piece, false) :
+                                new Move.MinorMove(source.index, tile.index, gameFrame.selectedPiece);
 
                         if (move.start == move.end) return;
 
-                        if (!Move.contains(move.end, move.piece.getLegalMoves(table.chessBoard))) return;
-                        for (Move legal : move.piece.getLegalMoves(table.chessBoard)){
+                        if (!Move.contains(move.end, move.piece.getLegalMoves(gameFrame.chessBoard))) return;
+                        for (Move legal : move.piece.getLegalMoves(gameFrame.chessBoard)){
                             if (legal.equals(move)){
                                 move = legal;
                                 break;
                             }
                         }
 
-                        boolean moveSuccess = table.chessBoard.makeMove(move);
+                        boolean moveSuccess = gameFrame.chessBoard.makeMove(move);
                         if (moveSuccess){
-                            table.selectedPiece = null;
-                            table.selectedPanel.assignTileColor(table.selectedPanel.color ? lightTileColor : darkTileColor);
-                            table.selectedPanel = null;
+                            gameFrame.selectedPiece = null;
+                            gameFrame.selectedPanel.assignTileColor(gameFrame.selectedPanel.color ? lightTileColor : darkTileColor);
+                            gameFrame.selectedPanel = null;
 
-                            Tile enPassantTile = move.piece.alliance == Alliance.WHITE ?
-                                    table.chessBoard.tiles.get(move.end+8) : table.chessBoard.tiles.get(move.end-8);
-                            if (move.takenPiece != null || move.enPassant) {
+                            if (move.takenPiece != null || (move.piece.type == Type.PAWN && move.enPassant)) {
                                 // While the pawn class doesn't set taken piece to anything in an en passant move,
                                 // i updated the make move function to set it because it was the simplest solution
                                 // I could think of
                                 assert move.takenPiece != null;
-                                table.takenPanel.addPiece(move.takenPiece);
+                                gameFrame.takenPanel.addPiece(move.takenPiece);
                             }
-                            SwingUtilities.invokeLater(new Runnable() {
-                                @Override
-                                public void run() {
-                                    table.boardPanel.redrawBoard(table.chessBoard);
-                                }
-                            });
+                            gameFrame.boardPanel.redrawBoard(gameFrame.chessBoard);
                         }
                     }
                 }
@@ -135,23 +126,34 @@ public class TilePanel extends JPanel {
 
     private void assignPieceIcon(){
         removeAll();
-        if (table.showTileIndices){
+        if (gameFrame.showTileIndices){
             add(new JLabel(String.valueOf(index)));
             return;
         }
-        if (!table.chessBoard.tiles.get(index).occupied) return;
+        if (!gameFrame.chessBoard.tiles.get(index).occupied) return;
         try{
             final BufferedImage img =
-                    ImageIO.read(new File(table.pieceIconPath +
-                            table.chessBoard.tiles.get(index).piece.alliance.toString().charAt(0) +
-                            table.chessBoard.tiles.get(index).piece.toString() + ".gif"));
-            add(new JLabel(new ImageIcon(img)));
+                    ImageIO.read(new File(gameFrame.pieceIconPath +
+                            gameFrame.chessBoard.tiles.get(index).piece.alliance.toString().charAt(0) +
+                            gameFrame.chessBoard.tiles.get(index).piece.toString() + ".gif"));
+            add(new JLabel(new ImageIcon(getScaledImage(img, 75, 75))));
         }
         catch (IOException e){
             e.printStackTrace();
         }
     }
 
+    private Image getScaledImage(Image source, int width, int height){
+        BufferedImage resizedImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = resizedImg.createGraphics();
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(source, 0, 0, width, height, null);
+        g2.dispose();
+
+        return resizedImg;
+    }
+    
     public void assignTileColor(final Color color) {
         setBackground(color);
     }

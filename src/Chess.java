@@ -1,7 +1,7 @@
-import gui.Table;
+import gui.GameFrame;
 
 public class Chess {
     public static void main(String[] args) throws Exception {
-        Table window = new Table("holywarriors");
+        GameFrame window = new GameFrame("holywarriors");
     }
 }

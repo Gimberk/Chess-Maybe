@@ -63,9 +63,9 @@ public class Pawn extends Piece {
                 }
             }
             final Move newMove;
-            if (enPassantMove) newMove = new AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove);
-            else newMove = tile.occupied ?  new AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove) :
-                    new MinorMove(tIdx, endIdx, this);
+            if (enPassantMove) newMove = new Move.AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove);
+            else newMove = tile.occupied ?  new Move.AttackMove(tIdx, endIdx, this, tile.piece, enPassantMove) :
+                    new Move.MinorMove(tIdx, endIdx, this);
             moves.add(newMove);
         }
         return moves;

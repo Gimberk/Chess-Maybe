@@ -1,7 +1,6 @@
 package gui;
 
 import engine.piece.Piece;
-import  gui.Table;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,15 +9,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static gui.Table.takenPanelColor;
-import static gui.Table.takenPanelDimensions;
+import static gui.GameFrame.takenPanelColor;
+import static gui.GameFrame.takenPanelDimensions;
 
 public class TakenPanel extends JPanel {
-    private final Table table;
+    private final GameFrame gameFrame;
 
-    TakenPanel(Table table){
+    TakenPanel(GameFrame gameFrame){
         super(new GridLayout(30, 1));
-        this.table = table;
+        this.gameFrame = gameFrame;
         setBackground(takenPanelColor);
         setPreferredSize(takenPanelDimensions);
     }
@@ -26,7 +25,7 @@ public class TakenPanel extends JPanel {
     public void addPiece(Piece piece){
         try{
             final BufferedImage img =
-                    ImageIO.read(new File(table.pieceIconPath + piece.alliance.toString().charAt(0) +
+                    ImageIO.read(new File(gameFrame.pieceIconPath + piece.alliance.toString().charAt(0) +
                             piece + ".gif"));
             add(new JLabel(new ImageIcon(img)));
         }

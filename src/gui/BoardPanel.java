@@ -8,20 +8,20 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gui.Table.boardPanelDimensions;
-import static gui.Table.selectedTileColor;
+import static gui.GameFrame.boardPanelDimensions;
+import static gui.GameFrame.selectedTileColor;
 
 public class BoardPanel extends JPanel {
     private final List<TilePanel> boardTiles;
 
-    BoardPanel(final Table table) {
+    BoardPanel(final GameFrame gameFrame) {
         super(new GridLayout(8,8));
         boardTiles = new ArrayList<>();
 
         boolean color = true;
         int counter = 0;
         for (int i = 0; i < Board.numTiles; i++){
-            final TilePanel tile = new TilePanel(i, color, table);
+            final TilePanel tile = new TilePanel(i, color, gameFrame);
             boardTiles.add(tile);
             add(tile);
             color = !color;

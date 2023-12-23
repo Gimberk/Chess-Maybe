@@ -28,8 +28,8 @@ public class Queen extends Piece {
             while (endIdx < board.tiles.size() && endIdx >= 0){
                 final Tile tile = board.tiles.get(endIdx);
                 if (!ValidateTile(tile)) break;
-                Move move = tile.occupied ? new AttackMove(tIdx, endIdx, this, tile.piece, false) :
-                        new MinorMove(tIdx, endIdx, this);
+                Move move = tile.occupied ? new Move.AttackMove(tIdx, endIdx, this, tile.piece, false) :
+                        new Move.MinorMove(tIdx, endIdx, this);
                 moves.add(move);
                 if (IsEdgeCase(endIdx, direction) || (move.takenPiece != null && move.takenPiece.alliance != alliance))
                     break;
