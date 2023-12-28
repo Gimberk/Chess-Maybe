@@ -1,6 +1,7 @@
 package gui;
 
 import engine.board.Board;
+import engine.board.Player;
 import engine.board.Tile;
 import engine.piece.Alliance;
 import engine.piece.Move;
@@ -44,6 +45,8 @@ public class TilePanel extends JPanel {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 final Tile tile = gameFrame.chessBoard.tiles.get(index);
+                if ((gameFrame.chessBoard.turn && gameFrame.chessBoard.whitePlayer == Player.AI) ||
+                        (!gameFrame.chessBoard.turn && gameFrame.chessBoard.blackPlayer == Player.AI)) return;
                 if(isRightMouseButton(e)){
                     gameFrame.selectedPiece = null;
                     if (gameFrame.selectedPanel != null){

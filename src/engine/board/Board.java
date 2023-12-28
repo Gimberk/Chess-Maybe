@@ -13,14 +13,21 @@ public class Board {
     public static final int numTiles = 64;
     public static final String baseFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
+    public Player whitePlayer, blackPlayer;
+
+    public boolean turn = true;
     public boolean whiteOnBottom = true;
 
     public Board() {
         generateTiles();
     }
 
-    public static Board createStandardBoard() throws Exception {
+    public static Board createStandardBoard(Player whitePlayer, Player blackPlayer) throws Exception {
         Board chessBoard = new Board();
+
+        chessBoard.whitePlayer = whitePlayer;
+        chessBoard.blackPlayer = blackPlayer;
+
         chessBoard.loadFen(Board.baseFen, true);
         chessBoard.displayBoard();
         return chessBoard;
@@ -163,6 +170,9 @@ public class Board {
 
     // Returns if the move was a success or not
     public boolean makeMove(final Move move) {
+        if ((move.piece.alliance == Alliance.WHITE && !turn) || move.piece.alliance == Alliance.BLACK && turn)
+            return false;
+
         final Tile start = tiles.get(move.start), end = tiles.get(move.end);
         final boolean attack = move.takenPiece != null;
 
@@ -185,6 +195,8 @@ public class Board {
         move.piece.moved = true; move.piece.justMoved = true;
 
         displayBoard();
+
+        turn = !turn;
         return true;
     }
 

@@ -27,6 +27,7 @@ public class GameFrame {
     public BoardPanel boardPanel;
     public TakenPanel takenPanel;
     public MovePanel moveLogPanel;
+    public LobbyPanel lobbyPanel;
 
     public Piece selectedPiece;
     public TilePanel selectedPanel;
@@ -43,19 +44,21 @@ public class GameFrame {
 
     public static final Color takenPanelColor = new Color(189, 154, 102);
     public static final Color moveLogPanelColor = new Color(189, 154, 102);
+    public static final Color lobbyPanelColor = new Color(140, 140, 140);
 
     public final static Dimension outerFrameDimensions = new Dimension(1920, 1080);
     public final static Dimension takenPanelDimensions = new Dimension(150, 350);
     public final static Dimension moveLogPanelDimensions = new Dimension(400, 350);
     public final static Dimension boardPanelDimensions = new Dimension(400, 350);
     public final static Dimension tilePanelDimensions = new Dimension(10, 10);
+    public final static Dimension lobbyPanelDimensions = outerFrameDimensions;
 
     public boolean showTileIndices = false;
     public boolean gameStarted = false;
 
     public GameFrame(String pieceSet) throws Exception {
         pieceIconPath = "assets/" + pieceSet + "/";
-        chessBoard = Board.createStandardBoard();
+        chessBoard = Board.createStandardBoard(Player.HUMAN, Player.AI);
 
         frame = createGameFrame();
     }
@@ -68,11 +71,14 @@ public class GameFrame {
         final JMenuBar menuBar = createMenuBar();
         frame.setJMenuBar(menuBar);
 
+        lobbyPanel = new LobbyPanel(this);
+        frame.add(lobbyPanel);
+
         frame.setVisible(true);
         return frame;
     }
 
-    private void startGame(){
+    public void startGame(){
         if (gameStarted){
             System.out.println("Game Already Started!");
             return;
@@ -87,6 +93,9 @@ public class GameFrame {
 
         boardPanel = new BoardPanel(this);
         frame.add(boardPanel, BorderLayout.CENTER);
+
+        frame.remove(lobbyPanel);
+
         frame.repaint();
         frame.validate();
     }
